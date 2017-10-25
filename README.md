@@ -1,12 +1,10 @@
 # A two-way data binding solution for JSX
 
-[![npm](https://img.shields.io/npm/dw/babel-plugin-jsx-two-way-binding.svg)]()
-[![npm](https://img.shields.io/npm/v/babel-plugin-jsx-two-way-binding.svg)]()
 [![GitHub stars](https://img.shields.io/github/stars/HuQingyang/babel-plugin-jsx-two-way-binding.svg?style=social&label=Stars)]()
 [![GitHub forks](https://img.shields.io/github/forks/HuQingyang/babel-plugin-jsx-two-way-binding.svg?style=social&label=Fork)]()
+[![npm](https://img.shields.io/npm/dw/babel-plugin-jsx-two-way-binding.svg)]()
+[![npm](https://img.shields.io/npm/v/babel-plugin-jsx-two-way-binding.svg)]()
 [![npm](https://img.shields.io/npm/l/babel-plugin-jsx-two-way-binding.svg)]()
-
-
 
 A easy-to-use two-way data binding solution for front-end frameworks using JSX with "setState" api like React.
 
