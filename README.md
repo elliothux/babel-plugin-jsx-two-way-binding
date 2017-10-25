@@ -147,7 +147,16 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            name: 'Joe'
+            profile: {
+                name: {
+                    type: 'string',
+                    value: 'Joe'
+                },
+                age: {
+                    type: 'number',
+                    value: 21
+                }
+            }
         }
     }
     
