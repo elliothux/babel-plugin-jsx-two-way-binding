@@ -1,0 +1,8 @@
+{
+  "name": "babel-plugin-jsx-two-way-binding",
+  "version": "1.0.0",
+  "main": "index.js",
+  "keywords": ["JSX", "React", "two-way", "data-binding"],
+  "author": "HuQingyang <i@do.codes>",
+  "license": "MIT"
+}
