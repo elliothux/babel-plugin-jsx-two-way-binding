@@ -33,10 +33,10 @@ module.exports = function ({types: t}) {
             );
 
             node.node.name.name = 'value';
-            const onInput = node.parent.attributes.filter(attr => attr.name.name === 'onInput')[0];
-            if (onInput) {
-                const callee = onInput.value.expression;
-                onInput.value = t.JSXExpressionContainer(
+            const onChange = node.parent.attributes.filter(attr => attr.name.name === 'onChange')[0];
+            if (onChange) {
+                const callee = onChange.value.expression;
+                onChange.value = t.JSXExpressionContainer(
                     t.arrowFunctionExpression(
                         [t.identifier('e')],
                         t.blockStatement([
@@ -53,7 +53,7 @@ module.exports = function ({types: t}) {
                 )
             } else {
                 node.insertAfter(t.JSXAttribute(
-                    t.jSXIdentifier('onInput'),
+                    t.jSXIdentifier('onChange'),
                     t.JSXExpressionContainer(
                         t.arrowFunctionExpression(
                             [t.identifier('e')],
