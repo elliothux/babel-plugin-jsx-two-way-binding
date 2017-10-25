@@ -1,7 +1,7 @@
 # A two-way data binding solution for JSX
 
-[![GitHub stars](https://img.shields.io/github/stars/HuQingyang/babel-plugin-jsx-two-way-binding.svg?style=social&label=Stars)]()
-[![GitHub forks](https://img.shields.io/github/forks/HuQingyang/babel-plugin-jsx-two-way-binding.svg?style=social&label=Fork)]()
+[![GitHub stars](https://img.shields.io/github/stars/HuQingyang/babel-plugin-jsx-two-way-binding.svg?style=social&label=Stars&style=plastic)]()
+[![GitHub forks](https://img.shields.io/github/forks/HuQingyang/babel-plugin-jsx-two-way-binding.svg?style=social&label=Fork&style=plastic)]()
 [![npm](https://img.shields.io/npm/dw/babel-plugin-jsx-two-way-binding.svg)]()
 [![npm](https://img.shields.io/npm/v/babel-plugin-jsx-two-way-binding.svg)]()
 [![npm](https://img.shields.io/npm/l/babel-plugin-jsx-two-way-binding.svg)]()
