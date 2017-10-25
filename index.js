@@ -1,5 +1,5 @@
 
-import { objValueStr2AST, objPropStr2AST, objExpression2Str} from './lib'
+const { objValueStr2AST, objPropStr2AST, objExpression2Str} = require('./lib');
 
 
 module.exports = function ({types: t}) {
