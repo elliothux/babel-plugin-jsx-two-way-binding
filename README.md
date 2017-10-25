@@ -98,7 +98,7 @@ class App extends React.Component {
                 value={this.state.name}
                 onChange={e => {
                     this.setState({ name: e.target.value });
-                    (() => console.log(`Changed at ${(new Date()).toLocaleString()}`))();;
+                    (() => console.log(`Changed at ${(new Date()).toLocaleString()}`))(e);
                 }}
             />
         </div>
