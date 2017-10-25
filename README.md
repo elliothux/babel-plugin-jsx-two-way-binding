@@ -1,5 +1,7 @@
 # A two-way data binding solution for JSX
 
+[![npm](https://img.shields.io/npm/dw/localeval.svg)]()
+
 A easy-to-use two-way data binding solution for front-end frameworks using JSX with "setState" api like React.
 
 ## 1. Install
