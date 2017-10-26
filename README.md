@@ -39,7 +39,7 @@ class App extends React.Component {
 }
 ```
 
-And it's will be compiled to:
+And it will be compiled to:
 ```jsx harmony
 class App extends React.Component {
     constructor(props) {
@@ -86,7 +86,7 @@ class App extends React.Component {
 }
 ```
 
-Then it's will be compiled to:
+Then it will be compiled to:
 ```jsx harmony
 class App extends React.Component {
     constructor(props) {
@@ -141,7 +141,7 @@ class App extends React.Component {
 }
 ```
 
-Then it's will be compiled to:
+Then it will be compiled to:
 ```jsx harmony
 class App extends React.Component {
     constructor(props) {
