@@ -8,7 +8,11 @@
 
 A easy-to-use two-way data binding solution for front-end frameworks using JSX with "setState" api like React.
 
-实现原理系列教程：
+**See Also:**
+* Using for-directive in JSX: [babel-plugin-jsx-for-directive](https://github.com/HuQingyang/babel-plugin-jsx-for-directive)
+* Using if-directive in JSX: [babel-plugin-jsx-if-directive](https://github.com/HuQingyang/babel-plugin-jsx-if-directive)
+
+**实现原理系列教程：**
 * [手把手教你为 React 添加双向数据绑定（一）](https://juejin.im/post/59f2e9b16fb9a04529360146)
 * [手把手教你为 React 添加双向数据绑定（二）](https://juejin.im/post/59f3655b6fb9a0452a3b93b2)
 
