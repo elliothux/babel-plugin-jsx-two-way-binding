@@ -33,7 +33,7 @@ module.exports = function ({types: t}) {
             );
 
             node.node.name.name = 'value';
-            const onChange = node.parent.attributes.filter(attr => attr.name.name === 'onChange')[0];
+            const onChange = node.parent.attributes.filter(attr => (attr && attr.name && attr.name.name) === 'onChange')[0];
             if (onChange) {
                 const callee = onChange.value.expression;
                 onChange.value = t.JSXExpressionContainer(
