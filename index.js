@@ -1,5 +1,5 @@
 
-const { objValueStr2AST, objPropStr2AST, objExpression2Str} = require('./lib');
+const { objValueStr2AST, objPropStr2AST, objExpression2Str} = require('./utils');
 
 
 module.exports = function ({types: t}) {

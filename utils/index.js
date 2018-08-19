@@ -1,4 +1,7 @@
 
+import * as types from './types';
+
+
 function objValueStr2AST(objValueStr, t) {
     const values = objValueStr.split('.');
     if (values.length === 1)
@@ -67,5 +70,6 @@ function objExpression2Str(expression) {
 module.exports = {
     objValueStr2AST,
     objPropStr2AST,
-    objExpression2Str
+    objExpression2Str,
+    types
 };
