@@ -1,4 +1,4 @@
-### ⚠️ It‘s unstable！DO NOT use it on production environment.
+### ⚠️  It‘s unstable！DO NOT use it on production environment.
 
 # A two-way data binding solution for JSX
 
