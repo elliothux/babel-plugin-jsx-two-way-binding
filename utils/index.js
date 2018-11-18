@@ -1,3 +1,7 @@
+
+const generate = require("@babel/generator").default;
+
+
 function objValueStr2AST(objValueStr, t) {
   const values = objValueStr.split('.');
   if (values.length === 1)
@@ -62,6 +66,10 @@ function objExpression2Str(expression) {
   return objStr + '.' + expression.property.name;
 }
 
+function objExpression2Str2(ast) {
+  return generate(ast).code;
+}
+
 function log(...args) {
   args.forEach(i => {
     console.log(JSON.stringify(i, '', 4));
@@ -72,5 +80,6 @@ module.exports = {
   objValueStr2AST,
   objPropStr2AST,
   objExpression2Str,
+  objExpression2Str2,
   log
 };
