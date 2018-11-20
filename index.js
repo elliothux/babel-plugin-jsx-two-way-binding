@@ -1,5 +1,6 @@
 
-const {objPropStr2AST, objExpression2Str, objExpression2Str2, log} = require('./utils');
+const { addNamed } = require('@babel/helper-module-imports');
+const {objPropStr2AST, objExpression2Str, objExpression2Str2, log, error} = require('./utils');
 
 
 function getRefExp(node, refName) {
@@ -22,14 +23,13 @@ function getRefExp(node, refName) {
   }
 }
 
+
 function getModelExp(node) {
-  // log(node.node.value.expression);
   const { expression } = node.node.value;
-  debugger;
   switch (expression.type) {
     case 'Identifier': {
       const ref = getRefExp(node, expression.name);
-      return `${ref}.${expression.name}`
+      return [`${ref}.${expression.name}`, null]
     }
   }
 }
@@ -38,81 +38,63 @@ function getModelExp(node) {
 module.exports = function ({types: t}) {
   let attrName = 'model';
 
-  function JSXAttributeVisitor(node) {
-    if (node.node.name.name === attrName) {
-      let modelExp = getModelExp(node);
-      return console.log(modelExp);
-      let modelStr = objExpression2Str(node.node.value.expression).split('.');
-      if (modelStr[0] !== 'this' || modelStr[1] !== 'state') return;
+  function JSXAttributeVisitor(state, path, node) {
+    if (node.node.name.name !== attrName) { return; }
 
-      modelStr = modelStr.slice(2, modelStr.length).join('.');
-      const stateDeclaration = t.variableDeclaration(
-        'const', [
-          t.variableDeclarator(
-            t.identifier('_state'),
-            t.memberExpression(
-              t.thisExpression(),
-              t.identifier('state')
-            )
-          )
-        ]
-      );
-      const setStateCall = t.callExpression(
-        t.memberExpression(
-          t.thisExpression(),
-          t.identifier('setState')
-        ),
-        [t.objectExpression(
-          [objPropStr2AST(modelStr, 'e.target.value', t)]
-        )]
-      );
-
-      node.node.name.name = 'value';
-      const onChange = node.parent.attributes.filter(attr => (attr && attr.name && attr.name.name) === 'onChange')[0];
-      if (onChange) {
-        const callee = onChange.value.expression;
-        onChange.value = t.JSXExpressionContainer(
-          t.arrowFunctionExpression(
-            [t.identifier('e')],
-            t.blockStatement([
-              stateDeclaration,
-              t.expressionStatement(setStateCall),
-              t.expressionStatement(
-                t.callExpression(
-                  callee,
-                  [t.identifier('e')]
-                )
-              )
-            ])
-          )
-        )
-      } else {
-        node.insertAfter(t.JSXAttribute(
-          t.jSXIdentifier('onChange'),
-          t.JSXExpressionContainer(
-            t.arrowFunctionExpression(
-              [t.identifier('e')],
-              t.blockStatement([
-                stateDeclaration,
-                t.expressionStatement(setStateCall)
-              ])
-            )
-          )
-        ));
-      }
+    const [modelExp, modelIndex] = getModelExp(node);
+    const modelStr = modelExp.split('.');
+    if (modelStr[0] !== 'this' || modelStr[1] !== 'state') {
+      throw error('Binding to an no-state value is invalid', node.node.loc.start.line);
     }
-  }
 
-  function JSXElementVisitor(path) {
-    attrName = this.opts && this.opts.attrName || attrName;
-    path.traverse({
-      JSXAttribute: JSXAttributeVisitor
-    });
+    // TODO: Check tag type
+    const tagType = t.stringLiteral(node.parent.name.name);
+    const self = t.thisExpression();
+    const bindingName = t.arrayExpression(
+      modelStr
+        .slice(2, modelStr.length)
+        .map(i => t.stringLiteral(i))
+    );
+    // TODO: Binding to Array
+    const index = t.numericLiteral(-1);
+    const onChange = node.parent.attributes
+      .find(attr => (attr && attr.name && attr.name.name) === 'onChange');
+
+    const handler = t.JSXExpressionContainer(
+      t.callExpression(
+          addNamed(
+            path,
+            'genHandler',
+            'babel-plugin-jsx-two-way-binding/runtime'
+          ),
+          [tagType, self, bindingName, index, onChange || t.nullLiteral()],
+      )
+    );
+
+    if (onChange) {
+      onChange.value = handler;
+    } else {
+      // TODO: Customize eventName
+      node.insertAfter(
+        t.JSXAttribute(
+          t.jSXIdentifier('onChange'),
+          handler
+        )
+      );
+    }
+
+    node.node.name.name = 'value';
+    return console.log(modelExp);
   }
 
   return {
     visitor: {
-      JSXElement: JSXElementVisitor
+      JSXElement: function (path, state) {
+        attrName = this.opts && this.opts.attrName || attrName;
+        path.traverse({
+          JSXAttribute: (...args) => JSXAttributeVisitor(state, path, ...args)
+        });
+      }
     }
   }
 };

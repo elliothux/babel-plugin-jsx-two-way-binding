@@ -76,10 +76,15 @@ function log(...args) {
   })
 }
 
+function error(info, line) {
+  return new Error(`[babel-plugin-jsx-two-way-binding] [At lint ${line}] ${info}`)
+}
+
 module.exports = {
   objValueStr2AST,
   objPropStr2AST,
   objExpression2Str,
   objExpression2Str2,
-  log
+  log,
+  error
 };
