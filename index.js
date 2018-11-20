@@ -1,6 +1,6 @@
 
 const { addNamed } = require('@babel/helper-module-imports');
-const {objPropStr2AST, objExpression2Str, objExpression2Str2, log, error} = require('./utils');
+const {ast2Code, error, memberExpression2Array} = require('./utils');
 
 
 function getRefExp(node, refName) {
@@ -14,7 +14,7 @@ function getRefExp(node, refName) {
     if (node.type !== 'VariableDeclarator') return null;
     switch (node.init.type) {
       case 'MemberExpression': {
-        return objExpression2Str2(node.init);
+        return ast2Code(node.init);
       }
       case 'Identifier': {
         return getRefExp(NODE, node.init.name);
@@ -24,12 +24,19 @@ function getRefExp(node, refName) {
 }
 
 
-function getModelExp(node) {
+function getModelName(node) {
   const { expression } = node.node.value;
   switch (expression.type) {
     case 'Identifier': {
       const ref = getRefExp(node, expression.name);
-      return [`${ref}.${expression.name}`, null]
+      return `${ref}.${expression.name}`.split('.');
+    }
+    case 'MemberExpression': {
+      return memberExpression2Array(expression);
+    }
+    default: {
+      console.warn(expression.type);
+      return [];
     }
   }
 }
@@ -37,13 +44,13 @@ function getModelExp(node) {
 
 module.exports = function ({types: t}) {
   let attrName = 'model';
+  let handlerName = 'onChange';
 
   function JSXAttributeVisitor(state, path, node) {
     if (node.node.name.name !== attrName) { return; }
 
-    const [modelExp, modelIndex] = getModelExp(node);
-    const modelStr = modelExp.split('.');
-    if (modelStr[0] !== 'this' || modelStr[1] !== 'state') {
+    const modelNames = getModelName(node);
+    if (modelNames[0] !== 'this' || modelNames[1] !== 'state') {
       throw error('Binding to an no-state value is invalid', node.node.loc.start.line);
     }
 
@@ -51,12 +58,12 @@ module.exports = function ({types: t}) {
     const tagType = t.stringLiteral(node.parent.name.name);
     const self = t.thisExpression();
     const bindingName = t.arrayExpression(
-      modelStr
-        .slice(2, modelStr.length)
-        .map(i => t.stringLiteral(i))
+      modelNames
+        .slice(2, modelNames.length)
+        .map(i => typeof i === 'string' ?
+          t.stringLiteral(i) :
+          t.numericLiteral(i))
     );
-    // TODO: Binding to Array
-    const index = t.numericLiteral(-1);
     const onChange = node.parent.attributes
       .find(attr => (attr && attr.name && attr.name.name) === 'onChange');
 
@@ -67,30 +74,32 @@ module.exports = function ({types: t}) {
             'genHandler',
             'babel-plugin-jsx-two-way-binding/runtime'
           ),
-          [tagType, self, bindingName, index, onChange || t.nullLiteral()],
+          [tagType, self, bindingName, onChange || t.nullLiteral()],
       )
     );
 
     if (onChange) {
       onChange.value = handler;
     } else {
-      // TODO: Customize eventName
       node.insertAfter(
         t.JSXAttribute(
-          t.jSXIdentifier('onChange'),
+          t.jSXIdentifier(handlerName),
           handler
         )
       );
     }
 
     node.node.name.name = 'value';
-    return console.log(modelExp);
   }
 
   return {
     visitor: {
       JSXElement: function (path, state) {
-        attrName = this.opts && this.opts.attrName || attrName;
+        const { opts } = this;
+        if (opts) {
+          attrName = opts.attrName || attrName;
+          handlerName = opts.handlerName || handlerName;
+        }
         path.traverse({
           JSXAttribute: (...args) => JSXAttributeVisitor(state, path, ...args)
         });

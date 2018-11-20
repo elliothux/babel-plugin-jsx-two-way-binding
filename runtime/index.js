@@ -4,18 +4,17 @@ function getValue(event, type) {
   return event.target.value;
 }
 
-function genNewState(oldState, value, bindingName, index) {
+function genNewState(oldState, value, bindingName) {
   const newState = Object.assign({}, oldState);
   let obj = newState;
   while (bindingName.length > 1) {
     obj = obj[bindingName.shift()];
   }
-  obj[bindingName[0]] = index >= 0 ?
-    value[index] : value;
+  obj[bindingName[0]] = value;
   return newState;
 }
 
-function genHandler(type, self, bindingName, index, onChange) {
+function genHandler(type, self, bindingName, onChange) {
   return (event) => {
     if (typeof onChange === 'function') {
       onChange(event);
@@ -24,8 +23,7 @@ function genHandler(type, self, bindingName, index, onChange) {
       genNewState(
         self.state,
         getValue(event, type),
-        bindingName,
-        index
+        bindingName
       )
     )
   }
