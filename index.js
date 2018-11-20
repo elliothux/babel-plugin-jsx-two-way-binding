@@ -3,6 +3,7 @@ const {objPropStr2AST, objExpression2Str, objExpression2Str2, log} = require('./
 
 
 function getRefExp(node, refName) {
+  const NODE = node;
   const binding = node.scope.bindings[refName];
   if (!binding) return null;
   return getExpFromVariableDeclaration(binding);
@@ -14,6 +15,9 @@ function getRefExp(node, refName) {
       case 'MemberExpression': {
         return objExpression2Str2(node.init);
       }
+      case 'Identifier': {
+        return getRefExp(NODE, node.init.name);
+      }
     }
   }
 }
@@ -21,6 +25,7 @@ function getRefExp(node, refName) {
 function getModelExp(node) {
   // log(node.node.value.expression);
   const { expression } = node.node.value;
+  debugger;
   switch (expression.type) {
     case 'Identifier': {
       const ref = getRefExp(node, expression.name);
@@ -36,8 +41,7 @@ module.exports = function ({types: t}) {
   function JSXAttributeVisitor(node) {
     if (node.node.name.name === attrName) {
       let modelExp = getModelExp(node);
-      debugger;
-      return;
+      return console.log(modelExp);
       let modelStr = objExpression2Str(node.node.value.expression).split('.');
       if (modelStr[0] !== 'this' || modelStr[1] !== 'state') return;
 
