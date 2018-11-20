@@ -13,7 +13,7 @@ function memberExpression2Array(node) {
       case 'StringLiteral': return [node.value];
       case 'MemberExpression': return memberExpression2Array(node);
       default: {
-        console.warn(node.type);
+        console.warn(`Invalid type "${node.type}" of getText`);
         return [];
       }
     }

@@ -19,6 +19,10 @@ function getRefExp(node, refName) {
       case 'Identifier': {
         return getRefExp(NODE, node.init.name);
       }
+      default: {
+        console.warn(`Invalid type "${node.init.type}" of getExpFromVariableDeclaration`);
+        return [];
+      }
     }
   }
 }
@@ -35,7 +39,7 @@ function getModelName(node) {
       return memberExpression2Array(expression);
     }
     default: {
-      console.warn(expression.type);
+      console.warn(`Invalid type "${expression.type}" of getModelName`);
       return [];
     }
   }
