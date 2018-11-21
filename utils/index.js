@@ -45,8 +45,11 @@ class TreeNode {
   children = [];
 
   appendChild = (value) => {
-    const child = new Tree(value, this);
-    this.children.push(child);
+    const child = value instanceof TreeNode ?
+      value : new TreeNode(value, this);
+    if (this.children.includes(child)) {
+      this.children.push(child);
+    }
   };
 
   find = (value) => {

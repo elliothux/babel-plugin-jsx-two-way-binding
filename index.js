@@ -13,11 +13,22 @@ function getRefExp(node, refName) {
   function objectPatternToIdentifierTree(node, parentNode) {
     const root = parentNode || new TreeNode('root');
     node.properties.forEach(i => {
-      switch (node.type) {
+      const { key, value } = i;
+      const treeNode = new TreeNode(key);
+      switch (value.type) {
         case 'ObjectPattern': {
+          objectPatternToIdentifierTree(value, treeNode);
+          break;
+        }
+        case 'Identifier': {
+          treeNode.appendChild(value);
+          break;
+        }
+        default: {
 
         }
       }
+      root.appendChild(treeNode);
     });
   }
 
