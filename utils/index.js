@@ -34,9 +34,35 @@ function error(info, line) {
   return new Error(`[babel-plugin-jsx-two-way-binding] [At lint ${line}] ${info}`)
 }
 
+class TreeNode {
+  constructor(rootValue, parent) {
+    this.value = rootValue;
+    this.parent = parent;
+  }
+
+  value = null;
+  parent = null;
+  children = [];
+
+  appendChild = (value) => {
+    const child = new Tree(value, this);
+    this.children.push(child);
+  };
+
+  find = (value) => {
+    if (value === this.value) return this;
+    for (let i=0; i < this.children.length; i++) {
+      const result = this.children[i].find(value);
+      if (result) return result;
+    }
+    return null;
+  }
+}
+
 module.exports = {
   ast2Code,
   log,
   error,
-  memberExpression2Array
+  memberExpression2Array,
+  TreeNode
 };

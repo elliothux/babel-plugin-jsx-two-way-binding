@@ -1,29 +1,57 @@
 
 const { addNamed } = require('@babel/helper-module-imports');
-const {ast2Code, error, memberExpression2Array} = require('./utils');
+const { ast2Code, error, memberExpression2Array, TreeNode } = require('./utils');
 
 
+// TODO
 function getRefExp(node, refName) {
   const NODE = node;
   const binding = node.scope.bindings[refName];
   if (!binding) return null;
   return getExpFromVariableDeclaration(binding);
 
+  function objectPatternToIdentifierTree(node, parentNode) {
+    const root = parentNode || new TreeNode('root');
+    node.properties.forEach(i => {
+      switch (node.type) {
+        case 'ObjectPattern': {
+
+        }
+      }
+    });
+  }
+
   function getExpFromVariableDeclaration(binding) {
     const { node } = binding.path;
     if (node.type !== 'VariableDeclarator') return null;
-    switch (node.init.type) {
+    const { id, init } = node;
+    let idExp;
+    let initExp;
+    debugger;
+    switch (id.type) {
+      case 'ObjectPattern': {
+        break;
+      }
+      default: {
+        console.warn(`Invalid type "${node.id.type}" of getExpFromVariableDeclaration`);
+        idExp = [];
+      }
+    }
+    switch (init.type) {
       case 'MemberExpression': {
-        return ast2Code(node.init);
+        initExp = ast2Code(node.init);
+        break;
       }
       case 'Identifier': {
-        return getRefExp(NODE, node.init.name);
+        initExp = getRefExp(NODE, node.init.name);
+        break;
       }
       default: {
         console.warn(`Invalid type "${node.init.type}" of getExpFromVariableDeclaration`);
-        return [];
+        initExp = [];
       }
     }
+    return [...initExp, ...idExp]
   }
 }
 
@@ -97,6 +125,7 @@ module.exports = function ({types: t}) {
   }
 
   return {
+    name: "jsx-two-way-binding",
     visitor: {
       JSXElement: function (path, state) {
         const { opts } = this;
