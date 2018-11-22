@@ -3,14 +3,27 @@ const generate = require("@babel/generator").default;
 
 function memberExpression2Array(node) {
   const { property, object } = node;
-  return [...getText(object), ...getText(property)];
+  const propText = getText(property);
+  const objText = getText(object);
+  const result = [];
+  if (Array.isArray(propText)) {
+    propText.forEach(i => result.push(i));
+  } else {
+    result.push(propText);
+  }
+  if (Array.isArray(objText)) {
+    objText.forEach(i => result.push(i));
+  } else {
+    result.push(objText);
+  }
+  return result.reverse();
 
   function getText(node) {
     switch (node.type) {
-      case 'ThisExpression': return ['this'];
-      case 'Identifier': return [node.name];
-      case 'NumericLiteral': return [node.value];
-      case 'StringLiteral': return [node.value];
+      case 'ThisExpression': return 'this';
+      case 'Identifier': return node.name;
+      case 'NumericLiteral': return node.value;
+      case 'StringLiteral': return node.value;
       case 'MemberExpression': return memberExpression2Array(node);
       default: {
         console.warn(`Invalid type "${node.type}" of getText`);
@@ -35,29 +48,40 @@ function error(info, line) {
 }
 
 class TreeNode {
-  constructor(rootValue, parent) {
+  constructor(rootValue) {
     this.value = rootValue;
-    this.parent = parent;
+    this.parent = null;
+    this.children = [];
+
+    this.appendChild = this.appendChild.bind(this);
+    this.appendChildren = this.appendChildren.bind(this);
+    this.find = this.find.bind(this);
   }
 
-  value = null;
-  parent = null;
-  children = [];
+  appendChildren(values) {
+    values.forEach(this.appendChild)
+  }
 
-  appendChild = (value) => {
+  appendChild(value) {
     const child = value instanceof TreeNode ?
       value : new TreeNode(value, this);
-    if (this.children.includes(child)) {
-      this.children.push(child);
-    }
+    child.parent = this;
+    this.children.push(child);
   };
 
-  find = (value) => {
+  find(value, compare) {
+    if (typeof compare !== 'function') {
+      compare = (a, b) => a === b;
+    }
+
     if (value === this.value) return this;
+    if (compare(value, this.value)) return this;
+
     for (let i=0; i < this.children.length; i++) {
-      const result = this.children[i].find(value);
+      const result = this.children[i].find(value, compare);
       if (result) return result;
     }
+
     return null;
   }
 }

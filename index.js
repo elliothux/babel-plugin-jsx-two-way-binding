@@ -1,7 +1,101 @@
 
 const { addNamed } = require('@babel/helper-module-imports');
-const { ast2Code, error, memberExpression2Array, TreeNode } = require('./utils');
+const { error, memberExpression2Array, TreeNode } = require('./utils');
 
+
+function sameLocation(node1, node2) {
+  if (!node1.loc || !node2.loc) return false;
+  const { loc: {
+    start: { line: startLine1, column: startCol1 },
+    end: { line: endLine1, column: endCol1 }
+  } } = node1;
+  const { loc: {
+    start: { line: startLine2, column: startCol2 },
+    end: { line: endLine2, column: endCol2 }
+  } } = node2;
+  return startLine1 === startLine2 &&
+    startCol1 === startCol2 &&
+    endLine1 === endLine2 &&
+    endCol1 === endCol2;
+}
+
+function objectPatternToIdentifierTrees(node) {
+  return node.properties.map(i => {
+    const { key, value } = i;
+    const treeNode = new TreeNode(key);
+    switch (value.type) {
+      case 'Identifier': {
+        if (key.name !== value.name) {
+          treeNode.appendChild(value);
+        }
+        break;
+      }
+      default: {
+        treeNode.appendChildren(
+          patternToIdentifierTrees(value)
+        );
+      }
+    }
+    return treeNode;
+  });
+}
+
+function arrayPatternToIdentifierTrees(node) {
+  return node.elements.map((i, index) => {
+    const treeNode = new TreeNode(
+      { type: 'ArrayPatternIndex', index }
+    );
+    if (i.type === 'Identifier') {
+      i.inArrayPattern = true;
+      treeNode.appendChild(i);
+    } else {
+      treeNode.appendChildren(
+        patternToIdentifierTrees(i)
+      );
+    }
+    return treeNode;
+  });
+}
+
+function patternToIdentifierTrees(node) {
+  switch (node.type) {
+    case 'ArrayPattern': {
+      debugger;
+      return arrayPatternToIdentifierTrees(node);
+    }
+    case 'ObjectPattern': {
+      return objectPatternToIdentifierTrees(node);
+    }
+    default: {
+      console.warn('invalid type');
+      return [];
+    }
+  }
+}
+
+function mapIdentifierTreeToIdentifiers(treeNode) {
+  let identifiers = [];
+  let currentNode = treeNode;
+  while (currentNode) {
+    const identifier = getIdentifier(currentNode);
+    identifier !== null && identifiers.push(identifier);
+    currentNode = currentNode.parent;
+  }
+  return identifiers.reverse();
+
+  function getIdentifier(node) {
+    const { value } = node;
+    switch (value.type) {
+      case 'Identifier': return value.inArrayPattern ? null : value.name;
+      case 'ArrayPatternIndex': return value.index;
+      case 'root': return null;
+      default: {
+        console.error(`Invalid type: ${value.type}`);
+        return null;
+      }
+    }
+  }
+}
 
 // TODO
 function getRefExp(node, refName) {
@@ -10,37 +104,29 @@ function getRefExp(node, refName) {
   if (!binding) return null;
   return getExpFromVariableDeclaration(binding);
 
-  function objectPatternToIdentifierTree(node, parentNode) {
-    const root = parentNode || new TreeNode('root');
-    node.properties.forEach(i => {
-      const { key, value } = i;
-      const treeNode = new TreeNode(key);
-      switch (value.type) {
-        case 'ObjectPattern': {
-          objectPatternToIdentifierTree(value, treeNode);
-          break;
-        }
-        case 'Identifier': {
-          treeNode.appendChild(value);
-          break;
-        }
-        default: {
-
-        }
-      }
-      root.appendChild(treeNode);
-    });
-  }
-
   function getExpFromVariableDeclaration(binding) {
     const { node } = binding.path;
     if (node.type !== 'VariableDeclarator') return null;
     const { id, init } = node;
     let idExp;
     let initExp;
-    debugger;
     switch (id.type) {
-      case 'ObjectPattern': {
+      case 'ObjectPattern':
+      case 'ArrayPattern': {
+        const rootNode = new TreeNode({ type: 'root' });
+        rootNode.appendChildren(patternToIdentifierTrees(id));
+        idExp = mapIdentifierTreeToIdentifiers(
+          rootNode.find(
+            binding.identifier,
+            sameLocation
+          )
+        );
+        console.log(
+          rootNode,
+          rootNode.find(binding.identifier, sameLocation),
+          idExp
+        );
+        debugger;
         break;
       }
       default: {
@@ -50,7 +136,7 @@ function getRefExp(node, refName) {
     }
     switch (init.type) {
       case 'MemberExpression': {
-        initExp = ast2Code(node.init);
+        initExp = memberExpression2Array(node.init);
         break;
       }
       case 'Identifier': {
@@ -62,7 +148,18 @@ function getRefExp(node, refName) {
         initExp = [];
       }
     }
-    return [...initExp, ...idExp]
+    const result = [];
+    if (Array.isArray(initExp)) {
+      initExp.forEach(i => result.push(i));
+    } else {
+      result.push(initExp);
+    }
+    if (Array.isArray(idExp)) {
+      idExp.forEach(i => result.push(i));
+    } else {
+      result.push(idExp);
+    }
+    return result;
   }
 }
 
@@ -71,8 +168,7 @@ function getModelName(node) {
   const { expression } = node.node.value;
   switch (expression.type) {
     case 'Identifier': {
-      const ref = getRefExp(node, expression.name);
-      return `${ref}.${expression.name}`.split('.');
+      return getRefExp(node, expression.name);
     }
     case 'MemberExpression': {
       return memberExpression2Array(expression);
@@ -93,6 +189,7 @@ module.exports = function ({types: t}) {
     if (node.node.name.name !== attrName) { return; }
 
     const modelNames = getModelName(node);
+    debugger;
     if (modelNames[0] !== 'this' || modelNames[1] !== 'state') {
       throw error('Binding to an no-state value is invalid', node.node.loc.start.line);
     }
