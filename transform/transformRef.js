@@ -33,7 +33,6 @@ function getRefIdentifiers(node, refName) {
           rootNode.find(binding.identifier, isSameLocation),
           idExp
         );
-        debugger;
         break;
       }
       default: {

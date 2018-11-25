@@ -1,9 +1,10 @@
 const t = require("@babel/types");
 const { addNamed } = require("@babel/helper-module-imports");
-const { getRefIdentifiers } = require('./transform/transformRef');
-const { getMemberExpressionIdentifiers } = require('./transform/transformDestructuring');
+const { getRefIdentifiers } = require("./transform/transformRef");
+const {
+  getMemberExpressionIdentifiers
+} = require("./transform/transformDestructuring");
 const { error } = require("./utils");
-
 
 function getModelIdentifiers(node) {
   const { expression } = node.node.value;
@@ -28,7 +29,6 @@ function JSXAttributeVisitor(opts, state, path, node) {
   }
 
   const modelIdentifiers = getModelIdentifiers(node);
-  debugger;
   if (modelIdentifiers[0] !== "this" || modelIdentifiers[1] !== "state") {
     throw error(
       "Binding to an no-state value is invalid",
@@ -37,7 +37,12 @@ function JSXAttributeVisitor(opts, state, path, node) {
   }
 
   // TODO: Check tag type
+  debugger;
   const tagType = t.stringLiteral(node.parent.name.name);
+  const tagTypeAttr = t.stringLiteral(
+    (node.parent.attributes.find(i => i.name.name === "type") || {}).value
+      .value || ""
+  );
   const self = t.thisExpression();
   const bindingName = t.arrayExpression(
     modelIdentifiers
@@ -53,7 +58,7 @@ function JSXAttributeVisitor(opts, state, path, node) {
   const handler = t.jsxExpressionContainer(
     t.callExpression(
       addNamed(path, "genHandler", "babel-plugin-jsx-two-way-binding/runtime"),
-      [tagType, self, bindingName, onChange || t.nullLiteral()]
+      [tagType, tagTypeAttr, self, bindingName, onChange || t.nullLiteral()]
     )
   );
 

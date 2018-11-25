@@ -69,7 +69,6 @@ function arrayPatternToIdentifierTrees(node) {
 function patternToIdentifierTrees(node) {
   switch (node.type) {
     case "ArrayPattern": {
-      debugger;
       return arrayPatternToIdentifierTrees(node);
     }
     case "ObjectPattern": {
