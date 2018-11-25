@@ -1,4 +1,5 @@
 
+const t = require('@babel/types');
 const { addNamed } = require('@babel/helper-module-imports');
 const { error, memberExpression2Array, TreeNode } = require('./utils');
 
@@ -163,7 +164,6 @@ function getRefExp(node, refName) {
   }
 }
 
-
 function getModelName(node) {
   const { expression } = node.node.value;
   switch (expression.type) {
@@ -180,58 +180,59 @@ function getModelName(node) {
   }
 }
 
+function JSXAttributeVisitor(opts, state, path, node) {
+  const { attrName, handlerName } = opts;
 
-module.exports = function ({types: t}) {
-  let attrName = 'model';
-  let handlerName = 'onChange';
+  if (node.node.name.name !== attrName) { return; }
 
-  function JSXAttributeVisitor(state, path, node) {
-    if (node.node.name.name !== attrName) { return; }
-
-    const modelNames = getModelName(node);
-    debugger;
-    if (modelNames[0] !== 'this' || modelNames[1] !== 'state') {
-      throw error('Binding to an no-state value is invalid', node.node.loc.start.line);
-    }
-
-    // TODO: Check tag type
-    const tagType = t.stringLiteral(node.parent.name.name);
-    const self = t.thisExpression();
-    const bindingName = t.arrayExpression(
-      modelNames
-        .slice(2, modelNames.length)
-        .map(i => typeof i === 'string' ?
-          t.stringLiteral(i) :
-          t.numericLiteral(i))
-    );
-    const onChange = node.parent.attributes
-      .find(attr => (attr && attr.name && attr.name.name) === 'onChange');
-
-    const handler = t.JSXExpressionContainer(
-      t.callExpression(
-          addNamed(
-            path,
-            'genHandler',
-            'babel-plugin-jsx-two-way-binding/runtime'
-          ),
-          [tagType, self, bindingName, onChange || t.nullLiteral()],
-      )
-    );
-
-    if (onChange) {
-      onChange.value = handler;
-    } else {
-      node.insertAfter(
-        t.JSXAttribute(
-          t.jSXIdentifier(handlerName),
-          handler
-        )
-      );
-    }
-
-    node.node.name.name = 'value';
+  const modelNames = getModelName(node);
+  debugger;
+  if (modelNames[0] !== 'this' || modelNames[1] !== 'state') {
+    throw error('Binding to an no-state value is invalid', node.node.loc.start.line);
   }
 
+  // TODO: Check tag type
+  const tagType = t.stringLiteral(node.parent.name.name);
+  const self = t.thisExpression();
+  const bindingName = t.arrayExpression(
+    modelNames
+      .slice(2, modelNames.length)
+      .map(i => typeof i === 'string' ?
+        t.stringLiteral(i) :
+        t.numericLiteral(i))
+  );
+  const onChange = node.parent.attributes
+    .find(attr => (attr && attr.name && attr.name.name) === 'onChange');
+
+  const handler = t.JSXExpressionContainer(
+    t.callExpression(
+      addNamed(
+        path,
+        'genHandler',
+        'babel-plugin-jsx-two-way-binding/runtime'
+      ),
+      [tagType, self, bindingName, onChange || t.nullLiteral()],
+    )
+  );
+
+  if (onChange) {
+    onChange.value = handler;
+  } else {
+    node.insertAfter(
+      t.JSXAttribute(
+        t.jSXIdentifier(handlerName),
+        handler
+      )
+    );
+  }
+
+  node.node.name.name = 'value';
+}
+
+
+module.exports = function () {
+  let attrName = 'model';
+  let handlerName = 'onChange';
   return {
     name: "jsx-two-way-binding",
     visitor: {
@@ -242,7 +243,10 @@ module.exports = function ({types: t}) {
           handlerName = opts.handlerName || handlerName;
         }
         path.traverse({
-          JSXAttribute: (...args) => JSXAttributeVisitor(state, path, ...args)
+          JSXAttribute: (...args) => JSXAttributeVisitor(
+            {attrName, handlerName},
+            state, path, ...args
+          )
         });
       }
     }
