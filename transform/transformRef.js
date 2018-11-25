@@ -1,74 +1,82 @@
-
 const {
   isSameLocation,
   mapIdentifierTreeToIdentifiers,
   TreeNode
 } = require("../utils");
-const { getMemberExpressionIdentifiers } = require('./transformDestructuring');
-const { patternToIdentifierTrees } = require('./transformDestructuring');
-
+const { getMemberExpressionIdentifiers } = require("./transformDestructuring");
+const { patternToIdentifierTrees } = require("./transformDestructuring");
 
 function getRefIdentifiers(node, refName) {
   const NODE = node;
   const binding = node.scope.bindings[refName];
   if (!binding) return null;
-  return getExpFromVariableDeclaration(binding);
+  return getIdentifiersFromVariableDeclaration(binding);
 
-  function getExpFromVariableDeclaration(binding) {
+  function getIdentifiersFromVariableDeclaration(binding) {
     const { node } = binding.path;
     if (node.type !== "VariableDeclarator") return null;
     const { id, init } = node;
-    let idExp;
-    let initExp;
+    let idIdentifiers;
+    let initIdentifiers;
+    debugger;
     switch (id.type) {
       case "ObjectPattern":
       case "ArrayPattern": {
         const rootNode = new TreeNode({ type: "root" });
         rootNode.appendChildren(patternToIdentifierTrees(id));
-        idExp = mapIdentifierTreeToIdentifiers(
+        idIdentifiers = mapIdentifierTreeToIdentifiers(
           rootNode.find(binding.identifier, isSameLocation)
-        );
-        console.log(
-          rootNode,
-          rootNode.find(binding.identifier, isSameLocation),
-          idExp
         );
         break;
       }
+      case 'Identifier': {
+        idIdentifiers = [];
+        break;
+      }
       default: {
+        debugger;
         console.warn(
-          `Invalid type "${node.id.type}" of getExpFromVariableDeclaration`
+          `Invalid id type "${
+            id.type
+          }" of getIdentifiersFromVariableDeclaration`
         );
-        idExp = [];
+        idIdentifiers = [];
       }
     }
     switch (init.type) {
       case "MemberExpression": {
-        initExp = getMemberExpressionIdentifiers(node.init);
+        initIdentifiers = getMemberExpressionIdentifiers(init);
         break;
       }
       case "Identifier": {
-        initExp = getRefIdentifiers(NODE, node.init.name);
+        initIdentifiers = getRefIdentifiers(NODE, init.name);
+        break;
+      }
+      case "ThisExpression": {
+        initIdentifiers = "this";
         break;
       }
       default: {
         console.warn(
-          `Invalid type "${node.init.type}" of getExpFromVariableDeclaration`
+          `Invalid init type "${
+            init.type
+          }" of getIdentifiersFromVariableDeclaration`
         );
-        initExp = [];
+        initIdentifiers = [];
       }
     }
     const result = [];
-    if (Array.isArray(initExp)) {
-      initExp.forEach(i => result.push(i));
+    if (Array.isArray(initIdentifiers)) {
+      initIdentifiers.forEach(i => result.push(i));
     } else {
-      result.push(initExp);
+      result.push(initIdentifiers);
     }
-    if (Array.isArray(idExp)) {
-      idExp.forEach(i => result.push(i));
+    if (Array.isArray(idIdentifiers)) {
+      idIdentifiers.forEach(i => result.push(i));
     } else {
-      result.push(idExp);
+      result.push(idIdentifiers);
     }
+    console.log(result);
     return result;
   }
 }

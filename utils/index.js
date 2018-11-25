@@ -45,7 +45,12 @@ function mapIdentifierTreeToIdentifiers(treeNode) {
   function getIdentifier(node) {
     const { value } = node;
     switch (value.type) {
-      case 'Identifier': return value.inArrayPattern ? null : value.name;
+      case 'Identifier': {
+        if (value.aliasKeyNode) {
+          return getIdentifier(value.aliasKeyNode);
+        }
+        return value.inArrayPattern ? null : value.name;
+      }
       case 'ArrayPatternIndex': return value.index;
       case 'root': return null;
       default: {

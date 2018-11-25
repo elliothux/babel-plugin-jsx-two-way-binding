@@ -4,20 +4,20 @@ const { TreeNode } = require('../utils');
 
 function getMemberExpressionIdentifiers(node) {
   const { property, object } = node;
-  const propText = getNodeText(property);
-  const objText = getNodeText(object);
+  const propIdentifiers = getNodeText(property);
+  const objIdentifiers = getNodeText(object);
   const result = [];
-  if (Array.isArray(propText)) {
-    propText.forEach(i => result.push(i));
+  if (Array.isArray(objIdentifiers)) {
+    objIdentifiers.forEach(i => result.push(i));
   } else {
-    result.push(propText);
+    result.push(objIdentifiers);
   }
-  if (Array.isArray(objText)) {
-    objText.forEach(i => result.push(i));
+  if (Array.isArray(propIdentifiers)) {
+    propIdentifiers.forEach(i => result.push(i));
   } else {
-    result.push(objText);
+    result.push(propIdentifiers);
   }
-  return result.reverse();
+  return result;
 }
 
 function getNodeText(node) {
@@ -37,18 +37,15 @@ function getNodeText(node) {
 function objectPatternToIdentifierTrees(node) {
   return node.properties.map(i => {
     const { key, value } = i;
-    const treeNode = new TreeNode(key);
-    switch (value.type) {
-      case "Identifier": {
-        if (key.name !== value.name) {
-          treeNode.appendChild(value);
-        }
-        break;
-      }
-      default: {
-        treeNode.appendChildren(patternToIdentifierTrees(value));
-      }
+
+    // Handle destructuring: { a: b }
+    if (value.type === 'Identifier') {
+      value.aliasKeyNode = new TreeNode(key);
+      return new TreeNode(value);
     }
+
+    const treeNode = new TreeNode(key);
+    treeNode.appendChildren(patternToIdentifierTrees(value));
     return treeNode;
   });
 }

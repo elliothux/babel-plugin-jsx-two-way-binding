@@ -30,6 +30,7 @@ function JSXAttributeVisitor(opts, state, path, node) {
 
   const modelIdentifiers = getModelIdentifiers(node);
   if (modelIdentifiers[0] !== "this" || modelIdentifiers[1] !== "state") {
+    debugger;
     throw error(
       "Binding to an no-state value is invalid",
       node.node.loc.start.line
@@ -37,7 +38,6 @@ function JSXAttributeVisitor(opts, state, path, node) {
   }
 
   // TODO: Check tag type
-  debugger;
   const tagType = t.stringLiteral(node.parent.name.name);
   const tagTypeAttr = t.stringLiteral(
     (node.parent.attributes.find(i => i.name.name === "type") || {}).value
