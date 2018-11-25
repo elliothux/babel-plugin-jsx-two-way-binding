@@ -4,7 +4,7 @@ const { getRefIdentifiers } = require("./transform/transformRef");
 const {
   getMemberExpressionIdentifiers
 } = require("./transform/transformDestructuring");
-const { error } = require("./utils");
+const { types, error } = require("./utils");
 
 function getModelIdentifiers(node) {
   const { expression } = node.node.value;
@@ -31,18 +31,30 @@ function JSXAttributeVisitor(opts, state, path, node) {
   const modelIdentifiers = getModelIdentifiers(node);
   if (modelIdentifiers[0] !== "this" || modelIdentifiers[1] !== "state") {
     debugger;
+    throw error("Binding to an no-state value is invalid", node.node.loc);
+  }
+
+  // Check tag type
+  const tagType = node.parent.name.name;
+  if (!types.VALID_TAG_TYPES.includes(tagType)) {
     throw error(
-      "Binding to an no-state value is invalid",
-      node.node.loc.start.line
+      `Can not binding to invalid tag type "${tagType}", using "input" or "textarea"`,
+      node.parent.name.loc
     );
   }
 
-  // TODO: Check tag type
-  const tagType = t.stringLiteral(node.parent.name.name);
-  const tagTypeAttr = t.stringLiteral(
-    (node.parent.attributes.find(i => i.name.name === "type") || {}).value
-      .value || ""
-  );
+  let tagTypeAttr = node.parent.attributes.find(
+    i => i.name.name === "type"
+  ) || { value: { value: "" } };
+  const { value: { loc: tagTypeAttrLoc } } = tagTypeAttr;
+  tagTypeAttr = tagTypeAttr.value.value;
+  if (tagType === "input" && !types.VALID_TYPES.includes(tagTypeAttr)) {
+    throw error(
+      `Can not binding to invalid input type "${tagTypeAttr}", using one of ${types.VALID_TYPES.map(i => `"${i}"`).join("、")}`,
+      tagTypeAttrLoc
+    );
+  }
+
   const self = t.thisExpression();
   const bindingName = t.arrayExpression(
     modelIdentifiers
@@ -58,7 +70,13 @@ function JSXAttributeVisitor(opts, state, path, node) {
   const handler = t.jsxExpressionContainer(
     t.callExpression(
       addNamed(path, "genHandler", "babel-plugin-jsx-two-way-binding/runtime"),
-      [tagType, tagTypeAttr, self, bindingName, onChange || t.nullLiteral()]
+      [
+        t.stringLiteral(tagType),
+        t.stringLiteral(tagTypeAttr),
+        self,
+        bindingName,
+        onChange || t.nullLiteral()
+      ]
     )
   );
 
