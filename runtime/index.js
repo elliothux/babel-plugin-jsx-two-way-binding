@@ -1,5 +1,5 @@
 
-function getValue(event, type) {
+function getValue(event, type, typeAttr) {
   // TODO
   return event.target.value;
 }
@@ -14,7 +14,8 @@ function genNewState(oldState, value, bindingName) {
   return newState;
 }
 
-function genHandler(type, self, bindingName, onChange) {
+function genHandler(type, tagTypeAttr, self, bindingName, onChange) {
+  // TODO: TYPE ATTR
   return (event) => {
     if (typeof onChange === 'function') {
       onChange(event);
@@ -22,7 +23,7 @@ function genHandler(type, self, bindingName, onChange) {
     self.setState(
       genNewState(
         self.state,
-        getValue(event, type),
+        getValue(event, type, tagTypeAttr),
         bindingName
       )
     )
