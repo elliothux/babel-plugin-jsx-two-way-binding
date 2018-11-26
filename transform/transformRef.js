@@ -1,6 +1,7 @@
 const {
   isSameLocation,
   mapIdentifierTreeToIdentifiers,
+  error,
   TreeNode
 } = require("../utils");
 const { getMemberExpressionIdentifiers } = require("./transformDestructuring");
@@ -34,13 +35,10 @@ function getRefIdentifiers(node, refName) {
         break;
       }
       default: {
-        debugger;
-        console.warn(
-          `Invalid id type "${
-            id.type
-          }" of getIdentifiersFromVariableDeclaration`
+        throw error(
+          `Invalid id type "${id.type}" of "VariableDeclaration".`,
+          id.loc
         );
-        idIdentifiers = [];
       }
     }
     switch (init.type) {
@@ -57,12 +55,10 @@ function getRefIdentifiers(node, refName) {
         break;
       }
       default: {
-        console.warn(
-          `Invalid init type "${
-            init.type
-          }" of getIdentifiersFromVariableDeclaration`
+        throw error(
+          `Invalid init type "${init.type}" of "VariableDeclaration".`,
+          init.loc
         );
-        initIdentifiers = [];
       }
     }
     const result = [];

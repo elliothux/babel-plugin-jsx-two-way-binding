@@ -16,8 +16,10 @@ function getModelIdentifiers(node) {
       return getMemberExpressionIdentifiers(expression);
     }
     default: {
-      console.warn(`Invalid type "${expression.type}" of getModelName`);
-      return [];
+      throw error(
+        `Can not binding to an invalid type "${expression.type}".`,
+        expression.loc
+      );
     }
   }
 }
@@ -31,14 +33,14 @@ function JSXAttributeVisitor(opts, state, path, node) {
   const modelIdentifiers = getModelIdentifiers(node);
   if (modelIdentifiers[0] !== "this" || modelIdentifiers[1] !== "state") {
     debugger;
-    throw error("Binding to an no-state value is invalid", node.node.loc);
+    throw error("Can not binding to an invalid no-state value.", node.node.loc);
   }
 
   // Check tag type
   const tagType = node.parent.name.name;
   if (!types.VALID_TAG_TYPES.includes(tagType)) {
     throw error(
-      `Can not binding to invalid tag type "${tagType}", using "input" or "textarea"`,
+      `Can not binding to invalid tag type "${tagType}", using "input" or "textarea".`,
       node.parent.name.loc
     );
   }

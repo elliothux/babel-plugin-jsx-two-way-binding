@@ -23,17 +23,11 @@ function isSameLocation(node1, node2) {
     endCol1 === endCol2;
 }
 
-function log(...args) {
-  args.forEach(i => {
-    console.log(JSON.stringify(i, '', 4));
-  })
-}
-
 function error(info, location) {
   const { start, end } = location;
-  const startText = `[Start: ${start.line}:${start.column}]`;
-  const endText = `[End: ${end.line}:${end.column}]`;
-  return new Error(`\n[babel-plugin-jsx-two-way-binding] ${startText} ${endText} ${info}\n`)
+  const startText = `[Start at ${start.line}:${start.column}]`;
+  const endText = `[End at ${end.line}:${end.column}]`;
+  return new Error(`[babel-plugin-jsx-two-way-binding] ${startText} ${endText} ${info}`)
 }
 
 function mapIdentifierTreeToIdentifiers(treeNode) {
@@ -107,7 +101,6 @@ class TreeNode {
 module.exports = {
   types,
   ast2Code,
-  log,
   error,
   isSameLocation,
   mapIdentifierTreeToIdentifiers,
