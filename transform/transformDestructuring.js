@@ -28,8 +28,10 @@ function getNodeText(node) {
     case 'StringLiteral': return node.value;
     case 'MemberExpression': return getMemberExpressionIdentifiers(node);
     default: {
-      console.warn(`Invalid type "${node.type}" of getText`);
-      return [];
+      throw error(
+        `Invalid node type "${node.type}" whiling get identifiers.`,
+        node.loc
+      );
     }
   }
 }
@@ -72,8 +74,10 @@ function patternToIdentifierTrees(node) {
       return objectPatternToIdentifierTrees(node);
     }
     default: {
-      console.warn("invalid type");
-      return [];
+      throw error(
+        `Invalid node type "${node.type}" with "patternToIdentifierTrees".`,
+        node.loc
+      );
     }
   }
 }

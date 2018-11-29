@@ -19,7 +19,6 @@ function getRefIdentifiers(node, refName) {
     const { id, init } = node;
     let idIdentifiers;
     let initIdentifiers;
-    debugger;
     switch (id.type) {
       case "ObjectPattern":
       case "ArrayPattern": {
@@ -72,7 +71,6 @@ function getRefIdentifiers(node, refName) {
     } else {
       result.push(idIdentifiers);
     }
-    console.log(result);
     return result;
   }
 }

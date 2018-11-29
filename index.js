@@ -32,7 +32,6 @@ function JSXAttributeVisitor(opts, state, path, node) {
 
   const modelIdentifiers = getModelIdentifiers(node);
   if (modelIdentifiers[0] !== "this" || modelIdentifiers[1] !== "state") {
-    debugger;
     throw error("Can not binding to an invalid no-state value.", node.node.loc);
   }
 

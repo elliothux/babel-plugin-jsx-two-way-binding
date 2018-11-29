@@ -52,8 +52,10 @@ function mapIdentifierTreeToIdentifiers(treeNode) {
       case 'ArrayPatternIndex': return value.index;
       case 'root': return null;
       default: {
-        console.error(`Invalid type: ${value.type}`);
-        return null;
+        throw error(
+          `Invalid node type "${value.type}" with "getIdentifier".`,
+          value.loc
+        );
       }
     }
   }
